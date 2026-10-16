@@ -1,7 +1,6 @@
 # NXOpen Dev Starter – VS Code ↔ Siemens NX 2412
 
-Komplett in Python – **keine .cmd- oder PowerShell-Skripte**, läuft also auch dort,
-wo die Richtlinie Batch/PowerShell sperrt.
+Komplett in Python – **keine .cmd- oder PowerShell-Skripte**
 
 Live-Entwicklung von NXOpen-Python in VS Code gegen eine laufende NX-Session
 (inkl. ECTR), plus Batch-Läufe über `run_journal.exe`. Kein Eingriff in die
