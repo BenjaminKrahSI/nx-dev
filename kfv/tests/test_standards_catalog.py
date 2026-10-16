@@ -6,8 +6,8 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
-from tools import standards_catalog
-from tools.standards_catalog import DEFAULT_ROOT, classify_path, main, scan, search
+from kfv import standards_catalog
+from kfv.standards_catalog import DEFAULT_ROOT, classify_path, main, scan, search
 
 
 class StandardsCatalogTests(unittest.TestCase):
@@ -128,7 +128,7 @@ class StandardsCatalogTests(unittest.TestCase):
         self.assertEqual(len(output.getvalue().splitlines()), 3)
 
     def test_nx_dialog_resource_contains_unique_expected_controls(self):
-        dialog_path = Path(__file__).resolve().parents[1] / "nx" / "standards_search.dlx"
+        dialog_path = Path(__file__).resolve().parents[1] / "standards_search.dlx"
         root = ET.parse(dialog_path).getroot()
         items = [child for child in list(root) if child.tag == "item"]
         identifiers = [item.attrib["id"] for item in items]

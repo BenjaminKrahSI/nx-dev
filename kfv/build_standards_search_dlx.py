@@ -75,7 +75,7 @@ def main(argv=None):
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path(__file__).resolve().parents[1] / "nx" / "standards_search.dlx",
+        default=Path(__file__).resolve().parent / "standards_search.dlx",
     )
     args = parser.parse_args(argv)
     print(build(args.output))

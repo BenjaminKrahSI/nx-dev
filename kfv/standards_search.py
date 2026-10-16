@@ -11,15 +11,13 @@ import NXOpen.BlockStyler
 import NXOpen.Assemblies
 
 
-NX_ROOT = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(NX_ROOT)
-TOOLS_ROOT = os.path.join(REPO_ROOT, "tools")
-DIALOG_PATH = os.path.join(NX_ROOT, "standards_search.dlx")
+KFV_ROOT = os.path.dirname(os.path.abspath(__file__))
+DIALOG_PATH = os.path.join(KFV_ROOT, "standards_search.dlx")
 PREVIEW_PATH = os.path.join(tempfile.gettempdir(), "nx_kfv_standard_preview.bmp")
 MAX_VISIBLE_RESULTS = 300
 
-if TOOLS_ROOT not in sys.path:
-    sys.path.insert(0, TOOLS_ROOT)
+if KFV_ROOT not in sys.path:
+    sys.path.insert(0, KFV_ROOT)
 
 from standards_catalog import CATEGORY_ORDER, DEFAULT_ROOT, scan, search
 
