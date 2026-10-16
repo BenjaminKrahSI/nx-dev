@@ -20,6 +20,24 @@ NX-Installation oder den Share `G:\CAD\ugsshare-2412`.
 | `HOME`                        | von NX auf `…\AppData\Local\Temp` umgebogen      | Starter nutzt `USERPROFILE`                 |
 | NX-Start                      | über ECTR                                        | Umgebungsänderungen erst nach ECTR-Neustart |
 
+## Nach dem Klonen
+
+Im Repository-Ordner ausführen:
+
+```text
+py setup.py
+```
+
+Loader, Batch-Einstieg, NX-Menü, VS-Code-Tasks, Debug-Konfiguration, Workspace und
+Pyright-Konfiguration werden lokal aus `templates/` erzeugt. Sie enthalten
+arbeitsplatzabhängige Pfade und sind deshalb nicht im Repository. Das Setup
+registriert ohne Zusatzoptionen kein Menü und installiert nichts.
+Anschließend `nxopen.code-workspace` öffnen. Für spätere Neugenerierung:
+`py setup.py --force --no-prompt`.
+
+Die tägliche Arbeit mit Commits ist in [GIT_ARBEITSWEISE.md](GIT_ARBEITSWEISE.md)
+beschrieben. Die nötigen NX-/Python-Voraussetzungen folgen im nächsten Abschnitt.
+
 ## Einrichtung (einmalig, ca. 5 Minuten)
 
 1. **Entpacken** nach z. B. `C:\dev\nxopen` – lokal, ohne Leerzeichen, nicht auf `G:`.
@@ -27,8 +45,9 @@ NX-Installation oder den Share `G:\CAD\ugsshare-2412`.
    `winget install Python.Python.3.11`
 3. **Optional, aber empfohlen – Discovery in NX:** `Alt+F8` →
    `C:\dev\nxopen\nx\nx_discover.py`. Schreibt `%USERPROFILE%\nx_discovery.json`
-   mit Stub-Pfad und exakter Laufzeitumgebung. Ohne diesen Schritt nutzt das Setup
-   die Werte aus der Syslog (`nx_discovery.syslog.json`) und sucht die Stubs selbst.
+  mit Stub-Pfad und exakter Laufzeitumgebung. Ohne diesen Schritt nutzt das Setup
+  eine gegebenenfalls lokal vorhandene `nx_discovery.syslog.json` und sucht
+  fehlende Angaben selbst. Discovery-Dateien werden nicht versioniert.
 4. **Setup:** `setup.py` doppelklicken (interaktiv), oder im VS-Code-Terminal
    (bzw. jedem Terminal) mit allen Extras:
    ```
@@ -92,17 +111,62 @@ zuletzt gespielte Journal, danach sind es zwei Klicks.
   mehr – dann `--register-menu` erneut ausführen, es kopiert die Menüdatei in den
   dann gesetzten Ordner (Share-Pfade werden verweigert).
 
+## KFV-Normteilsuche
+
+Die Fachskripte liegen getrennt von der Entwicklungsumgebung unter `kfv/`.
+Der Standardsordner wird über `--root` angegeben, ersatzweise über
+`KFV_STANDARDS_DIR`. Fehlt beides, erscheint eine Fehlermeldung.
+Ein Testlauf ohne NX und ohne echten Standardsbestand:
+
+```text
+python kfv/standards_catalog.py --root kfv/tests/fixtures B001 HS5000
+```
+
+Für den NX-Dialog `kfv/standards_search.py` einen echten Standardsordner
+konfigurieren. NX muss `KFV_STANDARDS_DIR` beim Start erben; nach einer
+Umgebungsänderung daher gegebenenfalls ECTR und NX neu starten. Die leeren
+Fixture-Dateien sind nicht als NX-Teile ladbar.
+Details: [KFV-Entwurf](kfv/docs/variantenkonfiguration-kfv.md).
+
+Tests vom Repository-Ordner aus:
+
+```text
+python -m pytest tests -q
+```
+
+Ohne installiertes pytest: `python -m unittest discover -s tests`.
+Die eigentlichen Tests liegen unter `kfv/tests/`; `tests/test_kfv.py` bindet sie
+in beide Befehle ein. Der optionale Test gegen einen echten Bestand wird ohne
+`KFV_STANDARDS_DIR` übersprungen.
+
 ## Struktur
 
 ```
-setup.py                         Pfadsuche + Generierung
-nx_discovery.syslog.json         Vorbelegung aus deiner Syslog
-nx\nx_discover.py                Discovery-Journal (in NX ausführen)
-nx\nx_dev_loader.py              (generiert) Live-Loader
-nx\nx_batch_bootstrap.py         (generiert) Batch-Einstieg
-nx\startup\nx_dev.men            (generiert) NX-Menü
-src\nxdev\                       Logger + Listing-Helfer
-scratch\hello_nx.py              Rauchtest
-tools\*.py                       Task-Helfer (Ziel, Batch, Log, Debug)
-.nxdev\                          Zustand: Ziel, Log, paths.json, nx_env.json
+setup.py                         Pfadsuche + lokale Generierung
+templates/                       Versionierte Vorlagen für das Setup
+GIT_ARBEITSWEISE.md               Git-Regeln und täglicher Ablauf
+nx/nx_discover.py                 Discovery-Journal (in NX ausführen)
+src/nxdev/                       Logger + Listing-Helfer
+scratch/hello_nx.py               Rauchtest
+tools/*.py                       Task-Helfer (Ziel, Batch, Log, Debug)
+kfv/notiz_zu_kurven.py            Gerettetes Notiz-Skript, DRY_RUN = True
+kfv/standards_catalog.py          Dateikatalog und CLI, ohne NX testbar
+kfv/standards_search.py           NX-Dialog für Normteilsuche und Einfügen
+kfv/standards_search.dlx          Versionierte Block-Styler-Dialogressource
+kfv/build_standards_search_dlx.py Generator zum Erneuern dieser .dlx
+kfv/docs/                        KFV-Fachkonzept und Pilotbeschreibung
+kfv/tests/                       Fachtests und leere Namens-Fixtures
+tests/test_kfv.py                Einstieg für die zentralen Testbefehle
+
+Lokal generiert, nicht versioniert:
+nx/nx_dev_loader.py              Live-Loader aus Template
+nx/nx_batch_bootstrap.py         Batch-Einstieg aus Template
+nx/startup/nx_dev.men            NX-Menü aus Template
+.vscode/tasks.json              VS-Code-Tasks aus Template
+.vscode/launch.json             Debug-Konfiguration aus Template
+nxopen.code-workspace           Workspace aus Template
+pyrightconfig.json              Pyright-Konfiguration aus Template
+.nxdev/                         Zustand: Ziel, Log, paths.json, nx_env.json
+_debugpy/                       Optional lokal installierter Debugger
+nx_discovery.syslog.json        Optionale lokale Syslog-Vorbelegung
 ```

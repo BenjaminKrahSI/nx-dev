@@ -1,5 +1,5 @@
 VERSION 120
-! NX Dev - generiert von setup.ps1
+! NX Dev - generiert von setup.py
 ! Erscheint im NX-Menue (Menue > NX Dev). Befehle lassen sich per
 ! Anpassen (Strg+1) auf die Schnellzugriffsleiste ziehen / mit Shortcut belegen.
 EDIT UG_GATEWAY_MAIN_MENUBAR

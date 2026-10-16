@@ -80,7 +80,7 @@ Der Dialog liegt in `kfv/standards_search.py`; die zugehörige Block-Styler-Date
 
 Der Dialog scannt ausschließlich den konfigurierten Standardsordner beim Öffnen und über **Standards aktualisieren** erneut. Suchtext und Kategorie-Dropdown filtern den eingelesenen Bestand ohne erneuten Dateiscan. Die Trefferliste zeigt höchstens 300 Zeilen; bei mehr Treffern fordert der Status zum weiteren Eingrenzen auf. Beim Auswählen wird nur dieses Teil geladen und sein gespeichertes Modell-Preview angefordert. Ist kein Preview in der Datei vorhanden, zeigt der Dialog dies im Status an. Preview-Parts werden nicht automatisch geschlossen, weil NX sie als geändert melden kann; sie bleiben bis zum Beenden der NX-Session geladen. Über den NX-Punktwähler wird ein Einfügepunkt ausgewählt; **OK** fügt die Komponente an diesem Punkt mit der Orientierung des Baugruppen-WCS ein. Die Baugruppe wird nicht automatisch gespeichert. Der Quellordner bleibt read-only.
 
-Der NX-Live-Lauf mit dem Kategorie-Dropdown ist noch nicht erneut abgenommen. Preview-Darstellung und Platzierung wurden am Testbestand bereits sichtbar ausprobiert; die Preview-Teile werden jetzt bis zum Sitzungsende im Speicher gehalten. Bis der dokumentierte Loader/Menu-Widerspruch beseitigt ist, das Journal direkt über Journal Play starten statt über den NX-Dev-Loader.
+Der NX-Live-Lauf mit dem Kategorie-Dropdown ist noch nicht erneut abgenommen. Preview-Darstellung und Platzierung wurden am Testbestand bereits sichtbar ausprobiert; die Preview-Teile werden jetzt bis zum Sitzungsende im Speicher gehalten. Nach dem Umzug nach `kfv/` und der Umstellung der Ordnerkonfiguration bleibt eine erneute NX-Abnahme offen; die Git-Bereinigung führt nichts in NX aus.
 
 `Standards.xls` liegt im Ordner, wurde für diesen Prototyp aber nicht inhaltlich ausgewertet. Ebenso ist noch nicht geklärt, ob die Excel-Übersicht für Verriegelungsvarianten dieselben Merkmale wie die Standards-Dateinamen enthält. Keine der Arbeitsmappen wird ohne Entscheidung über Datenhoheit zur maßgeblichen Suchquelle erklärt.
 
@@ -129,7 +129,7 @@ Für alle Aufgaben außer A01 ist in der konsolidierten Arbeitsfassung kein indi
 
 Das Starter-Repo beschreibt einen VS-Code-zu-NX-Live-Loop: eine Python-Datei als Ziel markieren, über das NX-Menü in der laufenden Session ausführen und Log/Listing Window prüfen; optional kann ein Debugger anhalten. Der Batchlauf über `run_journal.exe` ist GUI-frei und hat laut README keine ECTR-Verbindung. Damit eignet sich Batch nicht für die Abnahme von Dialogen, Platzierung oder Selektion.
 
-Vor Nutzung dieses Loops für die Suchfunktion muss ein lokaler Widerspruch geprüft werden: `nx/startup/nx_dev.men` verweist auf `nx/nx_dev_loader.py`, deren aktueller Inhalt kein Loader ist; die Loader-Logik ist in `templates/nx_dev_loader.py.tpl` vorhanden. Die Dateien wurden für dieses Projekt nicht verändert, weil zunächst geklärt werden muss, ob `nx_dev_loader.py` absichtlich ein Fachskript enthält oder versehentlich ersetzt wurde.
+Der überschriebene Loader wurde bei der Git-Einführung aus `templates/nx_dev_loader.py.tpl` wiederhergestellt. Das darin gefundene Fachskript liegt nun unter `kfv/notiz_zu_kurven.py` mit `DRY_RUN = True`. Loader und Menü bleiben lokal generiert und werden nach dem Klonen mit `py setup.py` erzeugt; Änderungen am Loader gehören in die Vorlage. Die Standardsuche liegt separat unter `kfv/standards_search.py`.
 
 ## Verifikation des ersten Wurfs
 
