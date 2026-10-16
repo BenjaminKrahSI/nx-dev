@@ -2,14 +2,12 @@
 import argparse
 import csv
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path(
-    r"C:\Users\benjamin.krah\Desktop\Test_Standards\Standards"
-)
 VARIANT_PATTERN = re.compile(
     r"(?<![A-Za-z0-9])(?:\d+ZK|[BKW]\d{3}|T\d+)(?![A-Za-z0-9])", re.IGNORECASE
 )
@@ -147,6 +145,15 @@ def classify_path(path, root):
     }
 
 
+def resolve_root(root=None):
+    configured = root if root is not None else os.environ.get("KFV_STANDARDS_DIR")
+    if configured is None or not str(configured).strip():
+        raise ValueError(
+            "Standardsordner fehlt: --root <Ordner> angeben oder KFV_STANDARDS_DIR setzen."
+        )
+    return Path(configured).expanduser()
+
+
 def scan(root):
     """Return a deterministic catalog of NX part files under root."""
     root = Path(root)
@@ -255,13 +262,16 @@ def main(argv=None):
         description="Durchsucht NX-Standards anhand von Dateinamen und Ordnern."
     )
     parser.add_argument("query", nargs="*", help="Suchbegriffe; alle muessen passen")
+    parser.add_argument(
+        "--root", type=Path, help="Standardsordner; sonst KFV_STANDARDS_DIR"
+    )
     parser.add_argument("--limit", type=int, default=50, help="maximale Trefferzahl; 0 = unbegrenzt")
     parser.add_argument("--format", choices=("text", "json", "csv"), default="text")
     args = parser.parse_args(argv)
 
     try:
-        results = search(scan(DEFAULT_ROOT), args.query)
-    except OSError as error:
+        results = search(scan(resolve_root(args.root)), args.query)
+    except (OSError, ValueError) as error:
         parser.error(str(error))
     total = len(results)
     if args.limit > 0:

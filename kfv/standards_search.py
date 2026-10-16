@@ -1,4 +1,5 @@
 """Interactive KFV standards search and component insertion for NX 2412."""
+import argparse
 import os
 import struct
 import sys
@@ -19,7 +20,7 @@ MAX_VISIBLE_RESULTS = 300
 if KFV_ROOT not in sys.path:
     sys.path.insert(0, KFV_ROOT)
 
-from standards_catalog import CATEGORY_ORDER, DEFAULT_ROOT, scan, search
+from standards_catalog import CATEGORY_ORDER, resolve_root, scan, search
 
 
 def _write_bmp(path, width, height, argb_pixels):
@@ -52,7 +53,8 @@ def _write_bmp(path, width, height, argb_pixels):
 
 
 class StandardsSearch:
-    def __init__(self):
+    def __init__(self, root=None):
+        self.root = resolve_root(root)
         self.session = NXOpen.Session.GetSession()
         self.ui = NXOpen.UI.GetUI()
         if not os.path.isfile(DIALOG_PATH):
@@ -125,7 +127,7 @@ class StandardsSearch:
 
     def _scan_catalog(self):
         try:
-            self.catalog = scan(DEFAULT_ROOT)
+            self.catalog = scan(self.root)
             self.catalog_error = None
         except OSError as error:
             self.catalog = []
@@ -212,7 +214,7 @@ class StandardsSearch:
         item = self.result_by_label.get(selected[0])
         if item is None:
             return
-        file_path = os.path.join(DEFAULT_ROOT, item["relative_path"])
+        file_path = os.path.join(self.root, item["relative_path"])
         self.preview_part = self._load_part(file_path)
         self.preview_file_path = file_path
         width, height, pixels = self.preview_part.GetPreviewImage()
@@ -245,7 +247,7 @@ class StandardsSearch:
             self._show_message("Zum Einfügen muss eine NX-Baugruppe aktiv sein.")
             return 1
 
-        file_path = os.path.join(DEFAULT_ROOT, item["relative_path"])
+        file_path = os.path.join(self.root, item["relative_path"])
         try:
             part = self._part_for_insert(file_path)
             builder = work_part.AssemblyManager.CreateAddComponentBuilder()
@@ -316,8 +318,16 @@ class StandardsSearch:
         self.close_cb()
 
 
-def main():
-    app = StandardsSearch()
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--root", type=Path, help="Standardsordner; sonst KFV_STANDARDS_DIR"
+    )
+    args = parser.parse_args(argv)
+    try:
+        app = StandardsSearch(args.root)
+    except ValueError as error:
+        parser.error(str(error))
     try:
         app.launch()
     finally:

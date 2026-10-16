@@ -44,7 +44,9 @@ ECTR-README und Makroregeln beschreiben ECTR-Makros für SAP-/ECTR-Abläufe, bel
 
 ## KFV-Standardsbestand und erster Suchprototyp
 
-**Testmodus (aktuell):** Der Katalog und der NX-Pilot verwenden ausschließlich `C:\Users\benjamin.krah\Desktop\Test_Standards\Standards`. Die KFV-Netzwerkpfade werden für Tests nicht abgefragt. Der spätere Produktivpfad ist davon getrennt: KFV-seitig `G:\CAD\ugsshare-2412\Standards`, auf diesem Arbeitsplatz `T:\KFV-SIEMENSSTRASSE-Gruppen\CAD\ugsshare-2412\Standards`. Das lokale `G:\CAD\ugsshare-2412\Standards` enthält bewusst andere Standards und ist kein Test- oder Pilotpfad.
+**Konfiguration:** Katalog und NX-Pilot erhalten den Standardsordner über `--root <Ordner>`, ersatzweise über die Umgebungsvariable `KFV_STANDARDS_DIR`. Das Argument hat Vorrang. Fehlt beides, erscheint eine klare Fehlermeldung; es gibt keinen persönlichen Standardpfad und keinen automatischen Netzwerkzugriff. NX muss die Umgebungsvariable beim Start erben.
+
+Die automatisierten Tests verwenden temporäre Ordner und die leeren Namens-Platzhalter unter `kfv/tests/fixtures/`. Diese Dateien sind keine ladbaren NX-Teile. Ein optionaler Test gegen den echten Bestand läuft nur mit gesetztem `KFV_STANDARDS_DIR`.
 
 Der Katalog scannt den gewählten Testordner bei jedem Aufruf read-only und schreibt keine Dateien in den Standardsbestand.
 
@@ -59,24 +61,24 @@ Der Prototyp liegt in `kfv/standards_catalog.py`. Er extrahiert vorläufige Grup
 | Zusatzmarker | `neu`, `alt`, `orig`, `vorschlag` | Nicht als Freigabe- oder Gültigkeitsstatus interpretieren |
 | Unklassifizierte Tokens | alle übrigen Namensteile | Bleiben in Suchergebnis und Export erhalten |
 
-Zusätzlich gibt es eine primäre, heuristische Dateikategorie für das Dropdown. Der aktuelle Testbestand ergibt: Fräsbilder 520, Senkungen 60, Treibstangen 51, Zusatzkästen 55, Hauptschlösser 153, Zeichnungsvorlagen 166 und Sonstiges 331. Mehrdeutige Fälle werden nach einer festen Regel priorisiert; das sind Suchgruppen und keine fachlich freigegebenen Metadaten.
+Zusätzlich gibt es eine primäre, heuristische Dateikategorie für das Dropdown. Eine frühere Sichtung des lokalen Testbestands ergab: Fräsbilder 520, Senkungen 60, Treibstangen 51, Zusatzkästen 55, Hauptschlösser 153, Zeichnungsvorlagen 166 und Sonstiges 331. Mehrdeutige Fälle werden nach einer festen Regel priorisiert; das sind Suchgruppen und keine fachlich freigegebenen Metadaten.
 
 Beispiele zum lokalen Ausführen:
 
 ```text
-python kfv/standards_catalog.py B001 HS5000
-python kfv/standards_catalog.py 4ZK 88E
-python kfv/standards_catalog.py --format csv --limit 0
-python kfv/standards_catalog.py --format json K091 HS99
+python kfv/standards_catalog.py --root kfv/tests/fixtures B001 HS5000
+python kfv/standards_catalog.py --root kfv/tests/fixtures 4ZK 88E
+python kfv/standards_catalog.py --root kfv/tests/fixtures --format csv --limit 0
+python kfv/standards_catalog.py --root kfv/tests/fixtures --format json
 ```
 
 Die Suchbegriffe werden ohne Beachtung der Groß-/Kleinschreibung als UND-Suche behandelt. Feldfilter können vorangestellt werden, zum Beispiel `familie:B001 serie:HS5000 mass:92E kategorie:Fräsbilder tag:neu lang:EN`. Unterstützt werden `familie`/`family`, `serie`/`series`, `mass`/`measure`/`dimension`, `kategorie`/`category`/`cat`, `ordner`/`folder`, `sprache`/`lang`/`language`, `art`/`kind`, `tag`/`marker` und `name`/`datei`. Der Dropdownfilter und `kategorie:` verwenden die heuristische Gruppe; `ordner:` filtert nur den tatsächlichen relativen Ordnerpfad. Die Werte bleiben Kandidaten aus Dateiname oder Pfad, keine bestätigte technische Klassifikation.
 
 ### NX-Pilotdialog
 
-Der Dialog liegt in `kfv/standards_search.py`; die zugehörige Block-Styler-Datei ist `kfv/standards_search.dlx`. In NX 2412 über **Tools > Journal > Play** (Alt+F8) das Python-Journal starten. Beim ersten Start kann der Dialoggenerator die `.dlx` aus den installierten SNAP-Controlvorlagen neu erzeugen. Voraussetzung ist eine aktive Baugruppe und Zugriff der NX-Session auf den KFV-Pfad auf T:.
+Der Dialog liegt in `kfv/standards_search.py`; die zugehörige Block-Styler-Datei ist `kfv/standards_search.dlx`. In NX 2412 über **Tools > Journal > Play** (Alt+F8) das Python-Journal starten. Beim ersten Start kann der Dialoggenerator die `.dlx` aus den installierten SNAP-Controlvorlagen neu erzeugen. Voraussetzung ist eine aktive Baugruppe und ein per `--root` oder `KFV_STANDARDS_DIR` konfigurierter Ordner mit echten NX-Teilen.
 
-Der Dialog scannt ausschließlich den lokalen Testordner beim Öffnen und über **Standards aktualisieren** erneut. Suchtext und Kategorie-Dropdown filtern den eingelesenen Bestand ohne erneuten Dateiscan. Die Trefferliste zeigt höchstens 300 Zeilen; bei mehr Treffern fordert der Status zum weiteren Eingrenzen auf. Beim Auswählen wird nur dieses Teil geladen und sein gespeichertes Modell-Preview angefordert. Ist kein Preview in der Datei vorhanden, zeigt der Dialog dies im Status an. Preview-Parts werden nicht automatisch geschlossen, weil NX sie als geändert melden kann; sie bleiben bis zum Beenden der NX-Session geladen. Über den NX-Punktwähler wird ein Einfügepunkt ausgewählt; **OK** fügt die Komponente an diesem Punkt mit der Orientierung des Baugruppen-WCS ein. Die Baugruppe wird nicht automatisch gespeichert. Der Quellordner bleibt read-only.
+Der Dialog scannt ausschließlich den konfigurierten Standardsordner beim Öffnen und über **Standards aktualisieren** erneut. Suchtext und Kategorie-Dropdown filtern den eingelesenen Bestand ohne erneuten Dateiscan. Die Trefferliste zeigt höchstens 300 Zeilen; bei mehr Treffern fordert der Status zum weiteren Eingrenzen auf. Beim Auswählen wird nur dieses Teil geladen und sein gespeichertes Modell-Preview angefordert. Ist kein Preview in der Datei vorhanden, zeigt der Dialog dies im Status an. Preview-Parts werden nicht automatisch geschlossen, weil NX sie als geändert melden kann; sie bleiben bis zum Beenden der NX-Session geladen. Über den NX-Punktwähler wird ein Einfügepunkt ausgewählt; **OK** fügt die Komponente an diesem Punkt mit der Orientierung des Baugruppen-WCS ein. Die Baugruppe wird nicht automatisch gespeichert. Der Quellordner bleibt read-only.
 
 Der NX-Live-Lauf mit dem Kategorie-Dropdown ist noch nicht erneut abgenommen. Preview-Darstellung und Platzierung wurden am Testbestand bereits sichtbar ausprobiert; die Preview-Teile werden jetzt bis zum Sitzungsende im Speicher gehalten. Bis der dokumentierte Loader/Menu-Widerspruch beseitigt ist, das Journal direkt über Journal Play starten statt über den NX-Dev-Loader.
 

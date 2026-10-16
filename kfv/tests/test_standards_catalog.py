@@ -1,5 +1,7 @@
 import contextlib
 import io
+import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,7 +9,10 @@ import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
 from kfv import standards_catalog
-from kfv.standards_catalog import DEFAULT_ROOT, classify_path, main, scan, search
+from kfv.standards_catalog import classify_path, main, resolve_root, scan, search
+
+
+FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures"
 
 
 class StandardsCatalogTests(unittest.TestCase):
@@ -105,14 +110,70 @@ class StandardsCatalogTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 scan(missing)
 
-    def test_cli_is_locked_to_the_local_test_directory(self):
+    def test_fixture_catalog_covers_existing_filename_cases(self):
+        catalog = scan(FIXTURE_ROOT)
+        self.assertEqual(len(catalog), 10)
         self.assertEqual(
-            DEFAULT_ROOT,
-            Path(r"C:\Users\benjamin.krah\Desktop\Test_Standards\Standards"),
+            {item["category"] for item in catalog},
+            set(standards_catalog.CATEGORY_ORDER),
         )
-        with contextlib.redirect_stderr(io.StringIO()):
-            with self.assertRaises(SystemExit):
-                main(["--root", r"T:\KFV-SIEMENSSTRASSE-Gruppen\CAD\ugsshare-2412\Standards"])
+        results = search(catalog, ["familie:b001", "serie:hs99", "mass:55_65D"])
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["unclassified_tokens"], [])
+
+    def test_cli_accepts_root_argument(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            result = main([
+                "--root", str(FIXTURE_ROOT), "--format", "json", "B001", "HS99"
+            ])
+        self.assertEqual(result, 0)
+        results = json.loads(output.getvalue())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["series"], ["HS99"])
+
+    def test_cli_uses_environment_root(self):
+        output = io.StringIO()
+        with patch.dict(os.environ, {"KFV_STANDARDS_DIR": str(FIXTURE_ROOT)}):
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(main(["--format", "json"]), 0)
+        self.assertEqual(len(json.loads(output.getvalue())), 10)
+
+    def test_cli_root_argument_overrides_environment(self):
+        with patch.dict(os.environ, {"KFV_STANDARDS_DIR": str(FIXTURE_ROOT / "missing")}):
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["--root", str(FIXTURE_ROOT)]), 0)
+
+    def test_cli_requires_root_or_environment(self):
+        error_output = io.StringIO()
+        with patch.dict(os.environ, {}, clear=True):
+            with contextlib.redirect_stderr(error_output):
+                with self.assertRaises(SystemExit) as raised:
+                    main([])
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("--root", error_output.getvalue())
+        self.assertIn("KFV_STANDARDS_DIR", error_output.getvalue())
+
+    def test_cli_rejects_empty_environment_root(self):
+        with patch.dict(os.environ, {"KFV_STANDARDS_DIR": "   "}):
+            with contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as raised:
+                    main([])
+        self.assertEqual(raised.exception.code, 2)
+
+    def test_cli_rejects_missing_root(self):
+        error_output = io.StringIO()
+        with contextlib.redirect_stderr(error_output):
+            with self.assertRaises(SystemExit) as raised:
+                main(["--root", str(FIXTURE_ROOT / "missing")])
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("Standards-Ordner nicht erreichbar", error_output.getvalue())
+
+    @unittest.skipUnless(os.environ.get("KFV_STANDARDS_DIR"), "KFV_STANDARDS_DIR fehlt")
+    def test_optional_real_standards_directory(self):
+        root = resolve_root()
+        self.assertTrue(root.is_dir())
+        self.assertTrue(all(item["file_name"].lower().endswith(".prt") for item in scan(root)))
 
     def test_zero_limit_exports_all_csv_rows(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -121,9 +182,10 @@ class StandardsCatalogTests(unittest.TestCase):
             (root / "Fraesbild_K091.prt").touch()
             output = io.StringIO()
 
-            with patch.object(standards_catalog, "DEFAULT_ROOT", root):
-                with contextlib.redirect_stdout(output):
-                    self.assertEqual(main(["--format", "csv", "--limit", "0"]), 0)
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(
+                    main(["--root", str(root), "--format", "csv", "--limit", "0"]), 0
+                )
 
         self.assertEqual(len(output.getvalue().splitlines()), 3)
 
