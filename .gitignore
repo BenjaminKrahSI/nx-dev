@@ -1,0 +1,14 @@
+.nxdev/
+_debugpy/
+__pycache__/
+*.pyc
+nx_discovery.json
+nx_discovery.syslog.json
+*.prt
+/nx/nx_dev_loader.py
+/nx/nx_batch_bootstrap.py
+/nx/startup/nx_dev.men
+/.vscode/tasks.json
+/.vscode/launch.json
+/nxopen.code-workspace
+/pyrightconfig.json

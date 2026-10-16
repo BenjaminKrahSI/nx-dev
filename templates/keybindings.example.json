@@ -1,0 +1,13 @@
+// In VS Code: Strg+Shift+P > "Preferences: Open Keyboard Shortcuts (JSON)" und einfuegen.
+[
+  {
+    "key": "ctrl+alt+n",
+    "command": "workbench.action.tasks.runTask",
+    "args": "NX: aktuelle Datei als Ziel setzen"
+  },
+  {
+    "key": "ctrl+alt+b",
+    "command": "workbench.action.tasks.runTask",
+    "args": "NX: Batch ausfuehren (run_journal)"
+  }
+]

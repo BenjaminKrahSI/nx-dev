@@ -1,0 +1,7 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.tpl text eol=lf
+*.dlx text eol=lf
+*.prt binary
