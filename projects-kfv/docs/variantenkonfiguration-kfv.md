@@ -6,7 +6,7 @@
 
 ## Ziel und Empfehlung
 
-Der Variantenprozess soll bestehende Konstruktionen besser wiederverwenden und neue Varianten mit weniger manuellen Wiederholungen ableiten. Der erste technische Schritt ist eine nachvollziehbare Suche nach NX-Fräsbildern anhand von Dateinamen und Ordnern. Dafür ist NX der passende Einstieg: Der Anwender sucht ein `.prt`-Pattern im KFV-Standardsbestand und wählt es im NX-Kontext zur Platzierung in der aktiven Baugruppe aus.
+Der Variantenprozess soll bestehende Konstruktionen besser wiederverwenden und neue Varianten mit weniger manuellen Wiederholungen ableiten. Der erste technische Schritt ist eine nachvollziehbare Suche nach NX-Fräsbildern anhand von Dateinamen und Ordnern. Dafür ist NX der passende Einstieg: Der Anwender sucht ein `.prt`-Pattern im KFV-Standardsbestand und platziert dessen gespeicherte Pattern-Daten als Legacy-Muster im aktiven Zielteil, nicht als Baugruppenkomponente.
 
 Die Suche nach vorhandenen Mehrfachverriegelungen, Materialnummern, SAP-Dokumenten und PLM-Klassifizierungen ist davon getrennt zu behandeln. Dafür ist ECTR der passende Einstieg, sobald Suchmerkmale und deren Pflege geklärt sind. Eine spätere Integration setzt einen abgestimmten Datenfluss und einen unterstützten Start-/Übergabemechanismus voraus.
 
@@ -35,7 +35,7 @@ Der aktuelle Dateinamen-Prototyp ist ein **erster Wurf**, kein freigegebener Mer
 
 | Suchaufgabe | Passender Einstieg | Ergebnis |
 |---|---|---|
-| NX-Fräsbilder und andere lokale Standards anhand von Dateiname/Ordner finden | NX | Kandidaten-Datei wählen und im NX-Baugruppenkontext platzieren |
+| NX-Fräsbilder und andere lokale Standards anhand von Dateiname/Ordner finden | NX | Kandidaten-Datei wählen und gespeicherte Pattern-Daten im Zielteil platzieren |
 | Bestehende Mehrfachverriegelungen und ähnliche Varianten anhand von Material-/PLM-Merkmalen finden | ECTR | ECTR-/SAP-Objekte mit Status, Dokumentbeziehungen und Klassifizierung anzeigen |
 | Excel-Matrix als Suche, Klassifizierung oder Konfigurator nutzen | Noch zu entscheiden | Datenhoheit, Aktualität, Verantwortliche und Übergabe klären |
 | Variantenmodell, Zeichnung und Rendering erzeugen | NX mit PLM-Prozess | Pilot für Stulp und eigenständige Zeichnung je Materialnummer |
@@ -44,13 +44,13 @@ ECTR-README und Makroregeln beschreiben ECTR-Makros für SAP-/ECTR-Abläufe, bel
 
 ## KFV-Standardsbestand und erster Suchprototyp
 
-**Konfiguration:** Katalog und NX-Pilot erhalten den Standardsordner über `--root <Ordner>`, ersatzweise über die Umgebungsvariable `KFV_STANDARDS_DIR`. Das Argument hat Vorrang. Fehlt beides, erscheint eine klare Fehlermeldung; es gibt keinen persönlichen Standardpfad und keinen automatischen Netzwerkzugriff. NX muss die Umgebungsvariable beim Start erben.
+**Konfiguration:** Katalog und NX-Pilot erhalten den Standardsordner über `--root <Ordner>`, ersatzweise über die Umgebungsvariable `KFV_STANDARDS_DIR`. Das Argument hat Vorrang. Fehlt beides, verwendet nur der NX-Pilot den lokalen Testbestand `Desktop\Test_Standards\Standards` im Benutzerprofil. Der Kommandozeilenkatalog verlangt weiterhin eine explizite Konfiguration. Es gibt keinen automatischen Netzwerkzugriff. NX muss eine konfigurierte Umgebungsvariable beim Start erben.
 
-Die automatisierten Tests verwenden temporäre Ordner und die leeren Namens-Platzhalter unter `kfv/tests/fixtures/`. Diese Dateien sind keine ladbaren NX-Teile. Ein optionaler Test gegen den echten Bestand läuft nur mit gesetztem `KFV_STANDARDS_DIR`.
+Die automatisierten Tests verwenden temporäre Ordner und die leeren Namens-Platzhalter unter `projects-kfv/tests/fixtures/`. Diese Dateien sind keine ladbaren NX-Teile. Ein optionaler Test gegen den echten Bestand läuft nur mit gesetztem `KFV_STANDARDS_DIR`.
 
 Der Katalog scannt den gewählten Testordner bei jedem Aufruf read-only und schreibt keine Dateien in den Standardsbestand.
 
-Der Prototyp liegt in `kfv/standards_catalog.py`. Er extrahiert vorläufige Gruppen:
+Der Prototyp liegt in `projects-kfv/standards_catalog.py`. Er extrahiert vorläufige Gruppen:
 
 | Gruppe | Beispiele | Einschränkung |
 |---|---|---|
@@ -66,21 +66,27 @@ Zusätzlich gibt es eine primäre, heuristische Dateikategorie für das Dropdown
 Beispiele zum lokalen Ausführen:
 
 ```text
-python kfv/standards_catalog.py --root kfv/tests/fixtures B001 HS5000
-python kfv/standards_catalog.py --root kfv/tests/fixtures 4ZK 88E
-python kfv/standards_catalog.py --root kfv/tests/fixtures --format csv --limit 0
-python kfv/standards_catalog.py --root kfv/tests/fixtures --format json
+python projects-kfv/standards_catalog.py --root projects-kfv/tests/fixtures B001 HS5000
+python projects-kfv/standards_catalog.py --root projects-kfv/tests/fixtures 4ZK 88E
+python projects-kfv/standards_catalog.py --root projects-kfv/tests/fixtures --format csv --limit 0
+python projects-kfv/standards_catalog.py --root projects-kfv/tests/fixtures --format json
 ```
 
-Die Suchbegriffe werden ohne Beachtung der Groß-/Kleinschreibung als UND-Suche behandelt. Feldfilter können vorangestellt werden, zum Beispiel `familie:B001 serie:HS5000 mass:92E kategorie:Fräsbilder tag:neu lang:EN`. Unterstützt werden `familie`/`family`, `serie`/`series`, `mass`/`measure`/`dimension`, `kategorie`/`category`/`cat`, `ordner`/`folder`, `sprache`/`lang`/`language`, `art`/`kind`, `tag`/`marker` und `name`/`datei`. Der Dropdownfilter und `kategorie:` verwenden die heuristische Gruppe; `ordner:` filtert nur den tatsächlichen relativen Ordnerpfad. Die Werte bleiben Kandidaten aus Dateiname oder Pfad, keine bestätigte technische Klassifikation.
+Die Suchbegriffe werden ohne Beachtung der Groß-/Kleinschreibung als UND-Suche behandelt. Feldfilter können vorangestellt werden, zum Beispiel `familie:B001 serie:HS5000 mass:92E kategorie:Fräsbilder tag:neu lang:EN`. Unterstützt werden `familie`/`family`, `serie`/`series`, `mass`/`measure`/`dimension`, `kategorie`/`category`/`cat`, `ordner`/`folder`, `sprache`/`lang`/`language`, `art`/`kind`, `tag`/`marker`, `name`/`datei` und `code`. Codes, Maße, Sprache und Zusatzmarker werden jetzt exakt verglichen; `mass:92E` findet nicht `192E`. `code:` durchsucht erkannte und unklassifizierte Tokens. Freitext sowie Namen-/Ordnerfilter bleiben Teilzeichenfolgensuchen. `*` steht für beliebig viele Zeichen, `?` für ein Zeichen; bei Codefiltern gilt das Muster für den ganzen Code. Mit `|` werden Alternativen innerhalb eines Begriffs gebildet, etwa `familie:B001|B002 serie:HS*`. Der Dropdownfilter und `kategorie:` verwenden die heuristische Gruppe; `ordner:` filtert nur den tatsächlichen relativen Ordnerpfad. Die Werte bleiben Kandidaten aus Dateiname oder Pfad, keine bestätigte technische Klassifikation.
 
 ### NX-Pilotdialog
 
-Der Dialog liegt in `kfv/standards_search.py`; die zugehörige Block-Styler-Datei ist `kfv/standards_search.dlx`. In NX 2412 über **Tools > Journal > Play** (Alt+F8) das Python-Journal starten. Beim ersten Start kann der Dialoggenerator die `.dlx` aus den installierten SNAP-Controlvorlagen neu erzeugen. Voraussetzung ist eine aktive Baugruppe und ein per `--root` oder `KFV_STANDARDS_DIR` konfigurierter Ordner mit echten NX-Teilen.
+Der Dialog liegt in `projects-kfv/standards_search.py`; die zugehörige Block-Styler-Datei ist `projects-kfv/standards_search.dlx`. In NX 2412 über **Tools > Journal > Play** (Alt+F8) das Python-Journal starten. Bei fehlender oder gegenüber dem Journal älterer `.dlx` erzeugt der Dialoggenerator sie aus den installierten SNAP-Controlvorlagen neu. Der lokale Desktop-Testbestand dient als Startwert; `--root` und `KFV_STANDARDS_DIR` haben Vorrang. Zur Platzierung muss ein beschreibbares Zielteil aktiv sein; eine Baugruppe ist nicht erforderlich.
 
-Der Dialog scannt ausschließlich den konfigurierten Standardsordner beim Öffnen und über **Standards aktualisieren** erneut. Suchtext und Kategorie-Dropdown filtern den eingelesenen Bestand ohne erneuten Dateiscan. Die Trefferliste zeigt höchstens 300 Zeilen; bei mehr Treffern fordert der Status zum weiteren Eingrenzen auf. Beim Auswählen wird nur dieses Teil geladen und sein gespeichertes Modell-Preview angefordert. Ist kein Preview in der Datei vorhanden, zeigt der Dialog dies im Status an. Preview-Parts werden nicht automatisch geschlossen, weil NX sie als geändert melden kann; sie bleiben bis zum Beenden der NX-Session geladen. Über den NX-Punktwähler wird ein Einfügepunkt ausgewählt; **OK** fügt die Komponente an diesem Punkt mit der Orientierung des Baugruppen-WCS ein. Die Baugruppe wird nicht automatisch gespeichert. Der Quellordner bleibt read-only.
+Der Suchbaukasten besteht aus Kategorie, Codegruppe und Codewert. Die Codeauswahl enthält Werte passend zu Suchanfrage und Kategorie, jeweils mit Dateianzahl. Ein ausgewählter Code grenzt die Treffer sofort zusätzlich ein; andere passende Codes bleiben auswählbar. **Auswaehlen** entfernt diesen zusätzlichen Auswahlfilter. Ein Wechsel der Codegruppe entfernt ebenfalls den bisherigen Auswahlfilter. **Baustein hinzufügen** übernimmt den Code als exakten Feldfilter in die editierbare Suchanfrage und leert die Codeauswahl; weitere Bausteine grenzen per UND ein. Auch mehrere Maßcodes können gemeinsam gefordert werden. Alternativen können direkt mit `|` eingegeben werden. **Suchen** wendet die eingegebene Anfrage und den ausgewählten Code explizit an; bei einem NX-Update des Textfelds wird ebenfalls gefiltert. **Suche zurücksetzen** leert die Anfrage und Codeauswahl und setzt die Kategorie auf Alle. Die Codegruppen sind vorläufig und keine technische Klassifizierung.
 
-Der NX-Live-Lauf mit dem Kategorie-Dropdown ist noch nicht erneut abgenommen. Preview-Darstellung und Platzierung wurden am Testbestand bereits sichtbar ausprobiert; die Preview-Teile werden jetzt bis zum Sitzungsende im Speicher gehalten. Nach dem Umzug nach `kfv/` und der Umstellung der Ordnerkonfiguration bleibt eine erneute NX-Abnahme offen; die Git-Bereinigung führt nichts in NX aus.
+Der Dialog scannt ausschließlich den konfigurierten Standardsordner beim Öffnen und über **Standards aktualisieren** erneut. Suchtext und Kategorie-Dropdown filtern den eingelesenen Bestand ohne erneuten Dateiscan. Die Trefferliste zeigt höchstens 300 Zeilen; bei mehr Treffern fordert der Status zum weiteren Eingrenzen auf. Beim Auswählen wird nur dieses Teil geladen und sein gespeichertes Modell-Preview angefordert. Ist kein Preview in der Datei vorhanden, zeigt der Dialog dies im Status an. Preview-Parts werden nicht automatisch geschlossen, weil NX sie als geändert melden kann; sie bleiben bis zum Beenden der NX-Session geladen. Über den NX-Punktwähler wird die Musterposition ausgewählt; **OK** importiert gespeicherte Pattern-Daten über `NXOpen.UF.UFSession.GetUFSession().Patt.Import` als Pattern-Objekt im aktiven Zielteil. Orientierung: Zielteil-WCS; Maßstab: 1; Autoskalierung bei unterschiedlichen Einheitensystemen: an. Es wird keine Baugruppenkomponente erzeugt. Ein Undo-Schritt fasst die Platzierung zusammen; bei Fehlern wird eine Rücknahme versucht. Das Zielteil wird nicht automatisch gespeichert. Der Quellordner bleibt read-only.
+
+Die frühere Komponentenplatzierung war für diese Fräsbilder fachlich falsch und wurde entfernt. Grundlage ist der aufgezeichnete Legacy-Befehl `UG_ARRANGE_PATTERN` (Muster Alt / Retrieve Pattern) und die installierte NX-2412-Dokumentation `uf_patt.h`: `uc5823`, als `UF_PATT_import` gewrappt, liest Pattern-Daten als ein Pattern-Objekt. Die UF-Bindung dokumentiert `UFPatt.Import`; die Python-Verfügbarkeit und das Ergebnis müssen live in NX bestätigt werden. Fehlt die Schnittstelle oder enthalten Teile keine gespeicherten Pattern-Daten, erfolgt eine Fehlermeldung, kein Komponenten-Fallback. Die Dateikategorie allein beweist nicht, dass Pattern-Daten vorhanden sind. Der Pilot ersetzt keinen internen Windows-Dateidialog, sondern bietet eine eigene vorgeschaltete Suche. Einstellungen und Verhalten in Zeichnungen, insbesondere Ansichtsabhängigkeit und Blattmaßstab, bleiben mit dem Legacy-Befehl zu vergleichen.
+
+Der bisherige Dialogstart am lokalen Desktop-Bestand wurde am 16.10.2026 vom Anwender bestätigt. Der erweiterte Suchbaukasten mit kompakten Kategorie-/Code-Dropdowns ist automatisiert mit einer simulierten NX-API geprüft, seine NX-Live-Abnahme bleibt offen. Preview-Darstellung und Platzierung wurden am Testbestand bereits sichtbar ausprobiert; die Preview-Teile werden bis zum Sitzungsende im Speicher gehalten.
+
+Ein Dateilisten-Cache wird vorerst nicht verwendet: Eine lokale Messung mit 1.336 Dateien benötigte rund 55 ms für den Namensscan und 3 ms für eine Suche (Python 3.14 außerhalb von NX, kein allgemeiner Performance-Grenzwert). Suchänderungen arbeiten ausschließlich im Speicher; Teil und Vorschaubild werden erst beim Anklicken angefordert. Der vorhandene CSV-Export dient zur Bestandsprüfung, nicht als Cache. Falls später ein Share-Scan zum Engpass wird, muss ein Index insbesondere relative Pfade und eine explizite Aktualisierung berücksichtigen; Dateinamen allein sind bei Unterordnern nicht eindeutig.
 
 `Standards.xls` liegt im Ordner, wurde für diesen Prototyp aber nicht inhaltlich ausgewertet. Ebenso ist noch nicht geklärt, ob die Excel-Übersicht für Verriegelungsvarianten dieselben Merkmale wie die Standards-Dateinamen enthält. Keine der Arbeitsmappen wird ohne Entscheidung über Datenhoheit zur maßgeblichen Suchquelle erklärt.
 
@@ -101,7 +107,7 @@ Für das ECTR-Repo sind die folgenden, vom NX-Dateikatalog getrennten Arbeitspak
 
 - Welche Dateinamen-Tokens bedeuten verbindlich Serie, Stulpart, Dornmaß, Kastenlage, Länge oder Fräsbild?
 - Welche Schreibvarianten und Synonyme sollen zusammenfallen? Wie werden widersprüchliche Tokens behandelt?
-- Welche konkrete NX-Aktion soll ein ausgewähltes Pattern ausführen: Baugruppenkomponente platzieren oder Geometrie in ein aktives Teil übernehmen? Für den ersten Wurf ist der Platzierungsdialog vorgesehen.
+- Die NX-Aktion ist nun Legacy-Pattern-Import, keine Komponentenplatzierung. Welche zusätzlichen Einstellungen von Muster (Alt), insbesondere Ansichtsabhängigkeit, Blattmaßstab und wiederholtes Platzieren, werden benötigt?
 - Wer bestätigt die vorläufige Klassifikation und pflegt spätere Änderungen an Namenskonventionen?
 - Welche Excel-Datei enthält die Filtermerkmale, und welches System ist für jedes Merkmal führend?
 - Wie wird je Materialnummer eine eigenständige Zeichnung erzeugt, benannt und mit Materialnummer/Rendering verknüpft?
@@ -129,7 +135,7 @@ Für alle Aufgaben außer A01 ist in der konsolidierten Arbeitsfassung kein indi
 
 Das Starter-Repo beschreibt einen VS-Code-zu-NX-Live-Loop: eine Python-Datei als Ziel markieren, über das NX-Menü in der laufenden Session ausführen und Log/Listing Window prüfen; optional kann ein Debugger anhalten. Der Batchlauf über `run_journal.exe` ist GUI-frei und hat laut README keine ECTR-Verbindung. Damit eignet sich Batch nicht für die Abnahme von Dialogen, Platzierung oder Selektion.
 
-Der überschriebene Loader wurde bei der Git-Einführung aus `templates/nx_dev_loader.py.tpl` wiederhergestellt. Das darin gefundene Fachskript liegt nun unter `kfv/notiz_zu_kurven.py` mit `DRY_RUN = True`. Loader und Menü bleiben lokal generiert und werden nach dem Klonen mit `py setup.py` erzeugt; Änderungen am Loader gehören in die Vorlage. Die Standardsuche liegt separat unter `kfv/standards_search.py`.
+Der überschriebene Loader wurde bei der Git-Einführung aus `templates/nx_dev_loader.py.tpl` wiederhergestellt. Das darin gefundene Notiz-Skript ist Niederdielfen zugeordnet und liegt unter `projects-siegenia-nd/notiz_zu_kurven.py`; vor einem Lauf dessen `DRY_RUN`-Einstellung prüfen. Loader und Menü bleiben lokal generiert und werden nach dem Klonen mit `py setup.py` erzeugt; Änderungen am Loader gehören in die Vorlage. Die Standardsuche liegt separat unter `projects-kfv/standards_search.py`.
 
 ## Verifikation des ersten Wurfs
 

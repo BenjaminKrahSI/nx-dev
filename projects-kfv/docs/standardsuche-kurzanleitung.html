@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>KFV Standardsuche - Kurzanleitung</title>
+  <style>
+    @page { size: A4; margin: 16mm 17mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #202b30; font: 10pt/1.42 "Segoe UI", sans-serif; }
+    .page { break-after: page; }
+    .page:last-child { break-after: auto; }
+    header { border-bottom: 2pt solid #007996; padding-bottom: 9pt; margin-bottom: 13pt; }
+    .meta { color: #53666c; font-size: 8.5pt; }
+    h1 { font-size: 24pt; line-height: 1.15; margin: 5pt 0; font-weight: 650; }
+    h2 { font-size: 13pt; margin: 15pt 0 7pt; color: #006a80; }
+    p { margin: 5pt 0 8pt; }
+    ol, ul { padding-left: 17pt; margin: 6pt 0; }
+    li { margin: 0 0 7pt; }
+    table { width: 100%; border-collapse: collapse; margin: 8pt 0; font-size: 9pt; }
+    th { background: #eaf2f3; text-align: left; font-weight: 650; }
+    th, td { padding: 6pt 7pt; border-bottom: 0.6pt solid #d6e0e2; vertical-align: top; }
+    code { font: 9pt Consolas, monospace; overflow-wrap: anywhere; }
+    .note { border-left: 3pt solid #007996; padding: 6pt 10pt; background: #f1f6f6; margin: 11pt 0; }
+    .small { font-size: 8.5pt; color: #53666c; }
+    footer { margin-top: 14pt; padding-top: 6pt; border-top: 0.6pt solid #d6e0e2; font-size: 8pt; color: #53666c; }
+    tr, li, .note { break-inside: avoid; }
+    @media screen { body { background: #e7ebec; } .page { background: white; width: 210mm; min-height: 297mm; padding: 16mm 17mm; margin: 16px auto; } }
+  </style>
+</head>
+<body>
+<section class="page">
+  <header>
+    <div class="meta">KFV / NX 2412 &nbsp; | &nbsp; Stand: 16.10.2026 &nbsp; | &nbsp; Anwender-Vorstellung</div>
+    <h1>Standardsuche in NX</h1>
+    <div>Reuse-Bibliothek f&uuml;r Legacy-Muster: suchen, ausw&auml;hlen und im Zielteil platzieren.</div>
+  </header>
+
+  <h2>1. So funktioniert die Suche</h2>
+  <ol>
+    <li><b>Starten:</b> In NX &uuml;ber <b>Tools &gt; Journal &gt; Play</b> (Alt+F8) das Journal <code>projects-kfv/standards_search.py</code> ausf&uuml;hren.</li>
+    <li><b>Kategorie w&auml;hlen:</b> Zum Beispiel Hauptschl&ouml;sser oder Senkungen. &bdquo;Alle&ldquo; sucht ohne diese Eingrenzung.</li>
+    <li><b>Codegruppe und Code w&auml;hlen:</b> Etwa Seriencodes und <code>HS4050</code>. Die Auswahl filtert sofort. Die Zahl am Code nennt passende Dateien vor diesem zus&auml;tzlichen Auswahlfilter. &bdquo;Auswaehlen&ldquo; oder ein Wechsel der Codegruppe hebt ihn wieder auf.</li>
+    <li><b>Mehrere Bedingungen kombinieren:</b> Mit <b>Baustein hinzufuegen</b> den Code in die Suchanfrage &uuml;bernehmen. Dann weitere Codes erg&auml;nzen. Bausteine bleiben als editierbarer Text stehen und werden mit UND verkn&uuml;pft. Freitext eingeben und mit <b>Suchen</b> anwenden.</li>
+    <li><b>Treffer anklicken und bemustern:</b> Erst jetzt werden das Teil und sein gespeichertes Vorschaubild angefordert. Im aktiven Zielteil einen Punkt w&auml;hlen und <b>OK</b> dr&uuml;cken. Der neue Einf&uuml;gepfad importiert gespeicherte Pattern-Daten als Legacy-Muster, nicht als Baugruppenkomponente. Orientierung: Zielteil-WCS; Ma&szlig;stab 1, Einheiten-Autoskalierung an. Es wird nicht automatisch gespeichert. Die Gleichwertigkeit zu &bdquo;Muster (Alt)&ldquo; ist noch live zu pr&uuml;fen.</li>
+  </ol>
+
+  <h2>2. Suchbeispiele</h2>
+  <table>
+    <thead><tr><th>Suchanfrage</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td><code>serie:HS4050 mass:92E</code></td><td>Beide Codes m&uuml;ssen im Dateinamen erkannt sein.</td></tr>
+      <tr><td><code>familie:B001|B002</code></td><td>B001 ODER B002.</td></tr>
+      <tr><td><code>serie:HS* mass:35-65D</code></td><td>Seriencode beginnt mit HS; zus&auml;tzlich exakter Ma&szlig;code.</td></tr>
+      <tr><td><code>*Stulp* geschraubt</code></td><td>Freitext: Beide Namensteile m&uuml;ssen vorkommen.</td></tr>
+    </tbody>
+  </table>
+  <p><code>*</code> ersetzt beliebig viele Zeichen, <code>?</code> ein Zeichen. Gro&szlig;-/Kleinschreibung wird ignoriert. Ohne Platzhalter sind Codefilter exakt: <code>mass:92E</code> findet nicht <code>192E</code>. Freitext sucht Teilzeichenfolgen in Namen, Pfaden und abgeleiteten Suchfeldern.</p>
+
+  <div class="note"><b>Aktueller Umfang:</b> Lokaler Desktop-Testbestand <code>Desktop\Test_Standards\Standards</code>. Durchsucht werden Dateinamen und Ordner, keine NX-Attribute, Excel-Inhalte oder SAP-/ECTR-Beschreibungen. Eine ausdr&uuml;ckliche Ordnerkonfiguration hat Vorrang.</div>
+  <p class="small"><b>Suche zuruecksetzen</b> leert Anfrage und Codeauswahl. <b>Standards aktualisieren</b> liest die Dateiliste neu ein; normale Such&auml;nderungen arbeiten im Speicher. H&ouml;chstens 300 Treffer werden angezeigt. Ohne gespeichertes Modell-Preview bleibt die Vorschau leer; geladene Preview-Teile bleiben bis zum Sitzungsende geladen. Eine normale .prt-Datei ohne gespeicherte Pattern-Daten kann nicht als Legacy-Muster importiert werden.</p>
+  <footer>KFV Standardsuche &middot; Kurzanleitung und Feedbackgrundlage &middot; 1 / 2</footer>
+</section>
+
+<section class="page">
+  <header>
+    <div class="meta">KFV / NX 2412 &nbsp; | &nbsp; Dateinamen-Regeln statt technischer Klassifizierung</div>
+    <h1>Kategorien &amp; R&uuml;ckmeldung</h1>
+    <div>Wie die Suchgruppen entstehen und wo Fachwissen der Anwender gefragt ist.</div>
+  </header>
+
+  <h2>3. Woher kommen die Kategorien?</h2>
+  <p>Die Regeln wurden aus einer ersten Sichtung des Standardsbestands und typischen Dateinamen abgeleitet. Das Tool ordnet jede Datei anhand ihres <b>Dateinamens</b> genau einer Hauptkategorie zu. Entscheidend ist die erste passende Regel in der folgenden Reihenfolge, nicht der Ablageordner.</p>
+  <table>
+    <thead><tr><th>Kategorie / Priorit&auml;t</th><th>Erkannte Namensmuster, vereinfacht</th></tr></thead>
+    <tbody>
+      <tr><td>1. Fr&auml;sbilder</td><td><code>Fraesbild</code>, <code>Fr&auml;sbild</code>, <code>Pattern</code></td></tr>
+      <tr><td>2. Senkungen</td><td>Namensteil <code>senk</code></td></tr>
+      <tr><td>3. Treibstangen</td><td>Namensteil <code>treibstang</code></td></tr>
+      <tr><td>4. Zusatzk&auml;sten</td><td><code>Zusatzkasten</code>, <code>Zusatzkaesten</code> oder abgegrenztes <code>ZK</code> mit optionalen Ziffern</td></tr>
+      <tr><td>5. Hauptschl&ouml;sser</td><td><code>Hauptschloss</code>, <code>Hauptschloesser</code> oder <code>HS</code> mit 2 bis 4 Ziffern</td></tr>
+      <tr><td>6. Zeichnungsvorlagen</td><td>Zum Beispiel <code>Schriftfeld</code>, <code>Schriftkopf</code>, <code>Rahmen_</code>, <code>sap_</code>, <code>DINA</code> mit Formatnummer</td></tr>
+      <tr><td>7. Sonstiges</td><td>Keine vorherige Regel passt.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Beispiel:</b> <code>Fraesbild_B001_HS5000.prt</code> wird als Fr&auml;sbild eingeordnet, obwohl ein HS-Code vorkommt. Davon getrennt erkennt das Tool Codegruppen: etwa <code>B001</code>, <code>T0</code> und <code>4ZK</code> als Varianten-/Familiencodes, <code>HS5000</code> als Seriencode und <code>92E</code> als Ma&szlig;code. Weitere Namensteile wie <code>3mmStulp</code> oder <code>geschraubt</code> bleiben ausw&auml;hlbar.</p>
+  <div class="note"><b>Wichtig:</b> Die Zuordnung ist eine Suchhilfe, noch kein fachlich freigegebener Merkmalskatalog. Ein erkannter Code beweist keine technische Eignung. Marker wie <code>neu</code> oder <code>alt</code> sind keine Freigabestatus.</div>
+
+  <h2>4. Welche Anregungen helfen als N&auml;chstes?</h2>
+  <ul>
+    <li><b>Fachliche Filter:</b> Welche Angaben werden zuerst gebraucht: Serie, Stulpart/-dicke, Dornma&szlig;, L&auml;nge oder Kastenlage? Welche Codes geh&ouml;ren zusammen, welche brauchen getrennte Gruppen?</li>
+    <li><b>Fehlzuordnungen und Schreibweisen:</b> Welche Dateien liegen in der falschen Kategorie? Welche Abk&uuml;rzungen oder Synonyme sollen gleich behandelt werden?</li>
+    <li><b>Bedienung:</b> Werden mehrere Codes gleichzeitig, Ausschlussfilter, Autovervollst&auml;ndigung, gespeicherte Suchen oder Favoriten ben&ouml;tigt?</li>
+    <li><b>Treffer und Vorschau:</b> Welche Angaben fehlen in der Liste? Ist die Vorschau lesbar? Wo fehlen Bilder? Wie lange dauern &Ouml;ffnen, Filtern und Vorschau jeweils?</li>
+    <li><b>Bemustern:</b> Entsteht ein Legacy-Muster statt einer Komponente? Stimmen Position, Orientierung und Gr&ouml;&szlig;e gegen&uuml;ber &bdquo;Muster (Alt)&ldquo;? Werden Ansichtsabh&auml;ngigkeit, Blattma&szlig;stab oder mehrfaches Platzieren ben&ouml;tigt?</li>
+  </ul>
+  <p><b>Am hilfreichsten:</b> Drei typische Suchaufgaben mit Suchanfrage, erwarteten Dateinamen und tats&auml;chlichen Treffern mitbringen. Falsche und fehlende Treffer markieren. Damit lassen sich Regeln und Bedienung gezielt verbessern.</p>
+  <footer>Stand: 16.10.2026 &middot; Prototyp, fachliche und NX-Live-Abnahme noch offen &middot; 2 / 2</footer>
+</section>
+</body>
+</html>

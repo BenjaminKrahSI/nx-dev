@@ -15,6 +15,13 @@ BLOCK_TEMPLATES = (
     "Drawing Area.dlx",
     "Label.dlx",
 )
+BUILDER_CONTROLS = (
+    ("Enumeration.dlx", "code_group"),
+    ("Enumeration.dlx", "code_value"),
+    ("Button.dlx", "add_code"),
+    ("Button.dlx", "apply_search"),
+    ("Button.dlx", "reset_search"),
+)
 
 
 def _dialog_dir():
@@ -47,6 +54,21 @@ def build(output_path):
         if len(template_items) != 1:
             raise ValueError("%s enthaelt nicht genau einen Dialogblock." % template_name)
         items.append(copy.deepcopy(template_items[0]))
+
+    controls = []
+    for template_name, identifier in BUILDER_CONTROLS:
+        control = copy.deepcopy(ET.parse(dialog_dir / template_name).getroot().find("item"))
+        control.set("id", identifier)
+        control.set("name", identifier)
+        control.find("./PropertyList/Property[@id='API Name']").set("value", identifier)
+        controls.append(control)
+    items[2:2] = controls
+    for item in items:
+        style = item.find("./PropertyList/Property[@id='PresentationStyle']")
+        if item.get("class") == "UICOMP_enum":
+            style.set("selected", "0")
+        elif item.get("class") == "UICOMP_string":
+            style.set("selected", "1")
 
     for item in list(root):
         if item.tag == "item":

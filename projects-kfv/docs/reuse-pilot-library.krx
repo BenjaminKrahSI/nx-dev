@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReuseLibraryRootNodeEntryCollection>
+  <RootNodeEntry Icon="library" Name="KFV-Muster (Pilot)"
+                 Path="C:/dev/nxopen-dev/projects-kfv/reuse-pilot"
+                 Type="2" Source="User Defined" Environment="Native+Teamcenter">
+    <Application Name="UG_APP_GATEWAY"/>
+    <Application Name="UG_APP_MODELING"/>
+    <Application Name="UG_APP_DRAFTING"/>
+  </RootNodeEntry>
+</ReuseLibraryRootNodeEntryCollection>

@@ -1,6 +1,7 @@
 """Read-only search prototype for NX standard part filenames."""
 import argparse
 import csv
+import fnmatch
 import json
 import os
 import re
@@ -75,6 +76,17 @@ FILTER_FIELDS = {
     "art": "file_kind",
     "name": "file_name",
     "datei": "file_name",
+    "code": "codes",
+}
+
+CODE_FIELDS = ("families", "series", "dimensions", "languages", "qualifiers", "unclassified_tokens")
+BUILDER_GROUPS = {
+    "Varianten-/Familiencodes": "familie",
+    "Seriencodes": "serie",
+    "Masscodes": "mass",
+    "Weitere Namensteile": "code",
+    "Sprachmarker": "lang",
+    "Zusatzmarker": "tag",
 }
 
 
@@ -160,10 +172,46 @@ def scan(root):
     if not root.is_dir():
         raise FileNotFoundError("Standards-Ordner nicht erreichbar: %s" % root)
     paths = sorted(
-        (path for path in root.rglob("*") if path.is_file() and path.suffix.casefold() == ".prt"),
+        (path for path in root.rglob("*") if path.suffix.casefold() == ".prt" and path.is_file()),
         key=lambda path: _normalise(path.relative_to(root).as_posix()),
     )
     return [classify_path(path, root) for path in paths]
+
+
+def _field_values(item, field):
+    if field == "codes":
+        return [value for name in CODE_FIELDS for value in item[name]]
+    values = item[field]
+    return values if isinstance(values, list) else [values]
+
+
+def code_options(catalog, prefix):
+    field = FILTER_FIELDS[prefix]
+    if field == "codes":
+        field = "unclassified_tokens"
+    counts = {}
+    labels = {}
+    for item in catalog:
+        for value in set(_normalise(value) for value in _field_values(item, field)):
+            counts[value] = counts.get(value, 0) + 1
+        for value in _field_values(item, field):
+            labels.setdefault(_normalise(value), value)
+    return [(labels[value], counts[value]) for value in sorted(counts)]
+
+
+def _matches_value(expression, candidate, exact=False):
+    candidate = _normalise(candidate)
+    for alternative in expression.split("|"):
+        if not alternative:
+            continue
+        value = _normalise(alternative)
+        if "*" in value or "?" in value:
+            pattern = value if exact else "*" + value + "*"
+            if fnmatch.fnmatchcase(candidate, pattern):
+                return True
+        elif (value == candidate if exact else value in candidate):
+            return True
+    return False
 
 
 def search(catalog, query):
@@ -195,14 +243,13 @@ def search(catalog, query):
                 field_name, value = term.split(":", 1)
                 field = FILTER_FIELDS.get(_normalise(field_name))
                 if field and value:
-                    values = item[field]
-                    if not isinstance(values, list):
-                        values = [values]
-                    if not any(_normalise(value) in _normalise(candidate) for candidate in values):
+                    values = _field_values(item, field)
+                    exact = field in CODE_FIELDS or field == "codes"
+                    if not any(_matches_value(value, candidate, exact) for candidate in values):
                         matched = False
                         break
                     continue
-            if _normalise(term) not in searchable:
+            if not _matches_value(term, searchable):
                 matched = False
                 break
         if matched:

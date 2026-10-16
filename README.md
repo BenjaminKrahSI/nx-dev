@@ -111,22 +111,40 @@ zuletzt gespielte Journal, danach sind es zwei Klicks.
   mehr – dann `--register-menu` erneut ausführen, es kopiert die Menüdatei in den
   dann gesetzten Ordner (Share-Pfade werden verweigert).
 
+## Projektzuordnung
+
+Die gemeinsame NXOpen-Entwicklungsumgebung bleibt unter `nx/`, `tools/`,
+`src/` und `templates/`. Fachskripte werden nach Gesellschaft beziehungsweise
+Standort getrennt:
+
+| Projektordner | Zuordnung |
+|---|---|
+| `projects-kfv/` | KFV, eigene Gesellschaft für Türbeschläge; Normteilsuche |
+| `projects-siegenia-nd/` | SIEGENIA Niederdielfen, Hauptstandort; Notiz-zu-Kurven |
+
+Hermeskeil (Schiebetüren) hat ebenfalls eine eigene NX-Share-Ablage; ein
+Projektordner wird bei Bedarf ergänzt. Jede Gesellschaft beziehungsweise jeder
+Standort verwendet die eigene Freigabe. `G:` steht daher nicht überall für
+denselben Bestand; der Zugriff von deinem Standort kann über `T:` erfolgen.
+Standardsordner immer ausdrücklich konfigurieren, nicht aus dem
+Laufwerksbuchstaben ableiten.
+
 ## KFV-Normteilsuche
 
-Die Fachskripte liegen getrennt von der Entwicklungsumgebung unter `kfv/`.
+Die Fachskripte liegen getrennt von der Entwicklungsumgebung unter `projects-kfv/`.
 Der Standardsordner wird über `--root` angegeben, ersatzweise über
 `KFV_STANDARDS_DIR`. Fehlt beides, erscheint eine Fehlermeldung.
 Ein Testlauf ohne NX und ohne echten Standardsbestand:
 
 ```text
-python kfv/standards_catalog.py --root kfv/tests/fixtures B001 HS5000
+python projects-kfv/standards_catalog.py --root projects-kfv/tests/fixtures B001 HS5000
 ```
 
-Für den NX-Dialog `kfv/standards_search.py` einen echten Standardsordner
+Für den NX-Dialog `projects-kfv/standards_search.py` einen echten Standardsordner
 konfigurieren. NX muss `KFV_STANDARDS_DIR` beim Start erben; nach einer
 Umgebungsänderung daher gegebenenfalls ECTR und NX neu starten. Die leeren
 Fixture-Dateien sind nicht als NX-Teile ladbar.
-Details: [KFV-Entwurf](kfv/docs/variantenkonfiguration-kfv.md).
+Details: [KFV-Entwurf](projects-kfv/docs/variantenkonfiguration-kfv.md).
 
 Tests vom Repository-Ordner aus:
 
@@ -135,7 +153,7 @@ python -m pytest tests -q
 ```
 
 Ohne installiertes pytest: `python -m unittest discover -s tests`.
-Die eigentlichen Tests liegen unter `kfv/tests/`; `tests/test_kfv.py` bindet sie
+Die eigentlichen Tests liegen unter `projects-kfv/tests/`; `tests/test_kfv.py` bindet sie
 in beide Befehle ein. Der optionale Test gegen einen echten Bestand wird ohne
 `KFV_STANDARDS_DIR` übersprungen.
 
@@ -149,13 +167,13 @@ nx/nx_discover.py                 Discovery-Journal (in NX ausführen)
 src/nxdev/                       Logger + Listing-Helfer
 scratch/hello_nx.py               Rauchtest
 tools/*.py                       Task-Helfer (Ziel, Batch, Log, Debug)
-kfv/notiz_zu_kurven.py            Gerettetes Notiz-Skript, DRY_RUN = True
-kfv/standards_catalog.py          Dateikatalog und CLI, ohne NX testbar
-kfv/standards_search.py           NX-Dialog für Normteilsuche und Einfügen
-kfv/standards_search.dlx          Versionierte Block-Styler-Dialogressource
-kfv/build_standards_search_dlx.py Generator zum Erneuern dieser .dlx
-kfv/docs/                        KFV-Fachkonzept und Pilotbeschreibung
-kfv/tests/                       Fachtests und leere Namens-Fixtures
+projects-kfv/standards_catalog.py          Dateikatalog und CLI, ohne NX testbar
+projects-kfv/standards_search.py           NX-Dialog für Normteilsuche und Einfügen
+projects-kfv/standards_search.dlx          Versionierte Block-Styler-Dialogressource
+projects-kfv/build_standards_search_dlx.py Generator zum Erneuern dieser .dlx
+projects-kfv/docs/                        KFV-Fachkonzept und Pilotbeschreibung
+projects-kfv/tests/                       Fachtests und leere Namens-Fixtures
+projects-siegenia-nd/notiz_zu_kurven.py    Notiz-Skript für Niederdielfen
 tests/test_kfv.py                Einstieg für die zentralen Testbefehle
 
 Lokal generiert, nicht versioniert:

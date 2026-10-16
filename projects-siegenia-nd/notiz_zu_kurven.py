@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-KFV_Notiz_zu_Kurven.py  -  NX 2412 / NX Open Python
+Notiz_zu_Kurven.py  -  SIEGENIA Niederdielfen / NX 2412 / NX Open Python
 =====================================================
 Wandelt Hinweise (Notes) des Arbeitsteils in echte Kurven (Linien) um.
 Schrift: Einstrich-Schrift (Hershey Simplex, aehnlich NX blockfont) -
@@ -22,7 +22,7 @@ Nicht in Produktion getestet - erst DRY_RUN = True laufen lassen.
 import json, math, re
 
 # ---------------- Konfiguration ----------------
-DRY_RUN      = True    # True: nur auslesen/protokollieren, nichts erzeugen
+DRY_RUN      = False   # True: nur auslesen/protokollieren, nichts erzeugen
 DELETE_NOTES = False   # True: Hinweise nach erfolgreicher Umwandlung loeschen
 ZIEL_LAYER   = None    # None = aktueller Arbeitslayer, sonst z.B. 1
 ZIEL_FARBE   = None    # None = Standardfarbe, sonst NX-Farbnummer
@@ -185,7 +185,7 @@ def main():
     lw = s.ListingWindow
     lw.Open()
     log = lw.WriteLine
-    log("=== KFV_Notiz_zu_Kurven  (%s)  DRY_RUN=%s ===" % (wp.Leaf, DRY_RUN))
+    log("=== SIEGENIA ND: Notiz_zu_Kurven  (%s)  DRY_RUN=%s ===" % (wp.Leaf, DRY_RUN))
 
     # Hinweise sammeln: Vorauswahl hat Vorrang
     notes = []
